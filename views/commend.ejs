@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>commends</title>
+</head>
+<body>
+<div class="box">
+    <h2>Share Blog..</h2>
+    <input type="text" id="name" placeholder="Enter your name..">
+    <div id="name_err"></div>
+    <input type="text" id="command" placeholder="Share your experiance..">
+    <div id="cmd_err"></div>
+    <button id="add_cmd" class="btn btn-default btn-primary">Post</button>
+</div>
+
+<% for(var i = 0; i < user.length; i++) { %>
+
+    <div style="width: 50%;padding-left: 50px;padding-top: 10px">
+
+        <div class="row ">
+            <i class="fa fa-user" style="font-size: 13px"></i>
+
+            <p style="display: inline"><%= user[i].name %></p>
+        </div>
+
+        <div class="test">
+            <p><%= user[i].commands %></p>
+        </div>
+
+        <div>
+
+
+            <span class="time-left"> Posted <%= user[i].timeago %></span>
+
+
+            <div class="row time-right">
+                <i class="fa fa-comment " style="font-size: 20px">
+                </i>
+                <span onclick="commandsClicked(<%= i %>);" style="cursor: pointer;"><%= user[i].commands_by.length %> Commends</span>
+
+            </div>
+
+            <div class="row time-right" style="padding-right: 60px">
+
+                <i class="fa fa-heart-o" style="font-size: 20px" onclick="actOnPost(<%= i %>,event);"
+                   data-post-id="<%= user[i].index %>" id="likes-id-<%= i %>">
+                </i>
+
+                <span id="likes-count-<%= user[i].index %>"><%= user[i].like %></span>
+            </div>
+
+        </div>
+        <div id="commandDivToggle-<%= i %>" hidden="<%= user[i].isHidden %>" style="margin-top: 45px;">
+            <input type="text" class="form-control" placeholder="Write Your Commands Here"
+                   style="margin-bottom: 15px;width: calc(100% - 60px);display: inline;"
+                   id="command-input-box-id-<%= i %>" onkeyup="postBtnEnable(<%= i %>);"
+            >
+            <button class="btn btn-default btn-primary" disabled
+                    style="width: 55px;margin-top: 0!important;height: auto;" onclick="addNewCommand(<%= i %>);"
+                    id="post-btn-id-<%= i %>"> Post
+            </button>
+            <% for(var j = 0; j < user[i].commands_by.length; j++) { %>
+                <p id="panel-content-updating"><b><%= user[i].commands_by[j].name %></b>
+                    - <%= user[i].commands_by[j].command %></p>
+            <% } %>
+        </div>
+
+        <br>
+        <p style="text-align: center">-----------------------------</p>
+
+
+    </div>
+<% } %>
+
+<script type="text/javascript">
+
+
+    /*Added By Rabeesh Start*/
+
+    function postBtnEnable(index) {
+        var toToggle = '#command-input-box-id-' + index
+        console.log($(toToggle).val(), "Add New Command Fun")
+        var postBtnToggle = '#post-btn-id-' + index
+        if ($(toToggle).val() === '') {
+            $(postBtnToggle).attr('disabled', "disabled")
+            console.log("treu")
+        } else {
+            console.log("fals")
+            $(postBtnToggle).removeAttr("disabled");
+        }
+    }
+
+    function commandsClicked(index) {
+        var toToggle = '#commandDivToggle-' + index
+        console.log(toToggle, "xxxxxx")
+        console.log($(toToggle).hidden, "hhh")
+        if ($(toToggle).is(':hidden')) {
+            $(toToggle).show();
+        } else {
+            $(toToggle).hide();
+        }
+    }
+
+    function addNewCommand(index) {
+
+        var toToggle = '#command-input-box-id-' + index
+        console.log( $(toToggle).val(), "Add New Command Fun" ,index);
+
+        var cmddata ={
+            index : index,
+            command : $(toToggle).val()
+        };
+        $.ajax({
+            type: 'GET',
+            data: cmddata,
+            datatype: 'json',
+            url: '/findallcmd',
+            success: function (data) {
+                document.location.reload(true)
+            },
+            failiure: function (err) {
+                alert("failiure");
+            }
+        });
+
+
+    }
+
+    /*Added By Rabeesh End*/
+    function GetContent(x) {
+
+
+        console.log(x, "xxxxxxxxx")
+    }
+
+    $('div.test').click(function () {
+        GetContent(this);
+    });
+
+    function ShowOld(x) {
+
+
+        console.log(x, "xxxxxxxxx")
+    }
+
+    function myFunction(x) {
+        x.classList.toggle("fa-thumbs-down");
+
+        console.log(x.target, "xxxxxxxxx")
+
+    }
+
+
+    function actOnPost(index, event) {
+        var toToggle = '#likes-id-' + index
+        console.log($(toToggle).css('color'), "jjjjjj")
+
+
+        var n = 0;
+        var postId = event.target.dataset.postId;
+        var action = event.target.textContent.trim();
+
+
+        if ($(toToggle).css('color') !== 'rgb(255, 0, 0)') {
+            $(toToggle).css('color', 'red');
+            document.querySelector('#likes-count-' + postId).textContent++;
+        } else {
+            $(toToggle).css('color', 'rgb(128, 128, 128)');
+            document.querySelector('#likes-count-' + postId).textContent--;
+        }
+
+
+    }
+
+    $(document).ready(function () {
+                
+        $('#add_cmd').click(function () {
+
+            var name = $("#name").val();
+            var command = $("#command").val();
+
+            var err = true;
+            if (name == "" || name == null) {
+                err = false;
+                document.getElementById('name_err').innerHTML="Please enter your Name";
+                window.preventdefault();
+            }
+            if (err = true) {
+                var cmddata = {'name': name, 'command': command};
+
+                $.ajax({
+                    type: 'GET',
+                    data: cmddata,
+                    datatype: 'json',
+                    url: '/command',
+                    success: function (data) {
+                        document.location.reload(true);
+                    },
+                    failiure: function (err) {
+                        alert("failiure");
+                    }
+                });
+
+            }
+//                                getcmd();
+
+        });
+    });
+</script>
+
+<style type="text/css">
+    .time-left {
+        float: left;
+        color: #999;
+    }
+
+    .time-right {
+        float: right;
+        color: #aaa;
+    }
+
+
+    .fa {
+        font-size: 50px;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .fa:hover {
+        color: darkblue;
+    }
+
+    #add_cmd {
+        width: 16%;
+        height: 11%;
+        position: absolute;
+        margin-top: 5.2rem;
+        margin-left: 7rem;
+        border: none;
+        border-radius: 4px;
+    }
+
+    .box {
+        margin-top: 1rem;
+        margin-left: 2rem;
+        margin-right: 2rem;
+        background-color: #00FFFF;
+        width: 97%;
+        height: 200px;
+        text-align: center;
+    }
+
+    #command {
+        position: absolute;
+        margin-top: 5.2rem;
+        margin-left: -18rem;
+        width: 15.5%;
+        height: 11.5%;
+        font-size: 20px;
+        display: inline-block;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    #name {
+        position: absolute;
+        margin-top: 5rem;
+        margin-left: -44rem;
+        width: 16%;
+        height:12%;
+        font-size: 20px;
+        display: inline-block;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    h4 {
+        position: absolute;
+        margin-top: 3rem;
+        margin-left: 50rem;
+    }
+    h2{
+        font-family: serif;
+        margin-top: 2rem;
+    }
+
+    #name_err {
+        color: red;
+        position: absolute;
+        margin-top: 12rem;
+        margin-left: 21rem;
+        font-size: 20px;
+    }
+
+    @media screen and (min-width: 360px) {
+
+        #command {
+            height: 3%;
+            width: 23%;
+            font-size: 20px;
+            margin-top: 5rem;
+            margin-left: -11rem;
+        }
+
+        #add_cmd {
+            height: 3%;
+            width: 23%;
+            font-size: 20px;
+            margin-top: 5rem;
+            margin-left: 16rem;
+        }
+        #name {
+            height: 3%;
+            width: 23%;
+            font-size: 20px;
+            margin-top: 5rem;
+            margin-left: -38rem;
+        }
+
+        
+    }
+    @media only screen and (min-width: 1281px){
+        #command{
+            width:20%;
+            height: 9%;
+            margin-left: -14rem;
+        }
+        #name{
+            width: 20%;
+            height: 9%;
+            margin-left: -45rem;
+        }
+        #add_cmd{
+            width: 20%;
+            height: 9%;
+
+        }
+    }
+</style>
+</body>
+</html>
